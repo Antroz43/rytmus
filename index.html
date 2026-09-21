@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rytmus">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EBEFF4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D131B" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%234A55C4'/%3E%3Cpath d='M112 58a38 38 0 1 0 22 69 46 46 0 1 1-22-69z' fill='%23fff'/%3E%3Ccircle cx='62' cy='120' r='13' fill='%233DBBA9'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Rytmus miminka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EBEFF4; --surface:#FFFFFF; --surface2:#F4F7FA; --surface3:#E7ECF2;
+  --ink:#12202F; --ink2:#4E5F73; --ink3:#7C8D9F;
+  --line:#D6DEE7; --line2:#C2CCD8;
+  --sleep:#4A55C4; --sleep-soft:#E4E6F8;
+  --feed:#0E7C6F; --feed-soft:#DCEFEC;
+  --warn:#B1440E; --warn-soft:#FBE7DA;
+  --shadow:0 1px 2px rgba(18,32,47,.06),0 8px 24px -12px rgba(18,32,47,.18);
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D131B; --surface:#18212C; --surface2:#1F2A36; --surface3:#27333F;
+    --ink:#E7EDF4; --ink2:#9FAEBF; --ink3:#748596;
+    --line:#2A3542; --line2:#3A4756;
+    --sleep:#9099F2; --sleep-soft:#262C58;
+    --feed:#3DBBA9; --feed-soft:#123F3A;
+    --warn:#EE8A50; --warn-soft:#452313;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D131B; --surface:#18212C; --surface2:#1F2A36; --surface3:#27333F;
+  --ink:#E7EDF4; --ink2:#9FAEBF; --ink3:#748596;
+  --line:#2A3542; --line2:#3A4756;
+  --sleep:#9099F2; --sleep-soft:#262C58;
+  --feed:#3DBBA9; --feed-soft:#123F3A;
+  --warn:#EE8A50; --warn-soft:#452313;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--sleep);outline-offset:2px;border-radius:6px}
+.num{font-family:"Outfit",system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
+  background:var(--ground);border-bottom:1px solid var(--line);
+  padding:10px 16px 8px;flex:0 0 auto;
+}
+.brandrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px}
+.brand{font-family:"Outfit",sans-serif;font-weight:600;font-size:17px;letter-spacing:-.015em}
+.brand span{color:var(--ink3);font-weight:400}
+.today{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--surface3);padding:3px;border-radius:10px}
+.tabs button{
+  padding:7px 2px;border-radius:8px;font-size:12.5px;font-weight:500;color:var(--ink2);
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* ---------- scroll area ---------- */
+main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 24px}
+main.with-bar{padding-bottom:184px}
+.stack{display:flex;flex-direction:column;gap:12px;max-width:560px;margin:0 auto}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
+.card.flat{box-shadow:none;border:1px solid var(--line)}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+
+.statecard{position:relative;overflow:hidden}
+.statecard .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.statecard .big{font-family:"Outfit",sans-serif;font-size:34px;font-weight:600;line-height:1.05;letter-spacing:-.025em;font-variant-numeric:tabular-nums;margin-top:4px}
+.statecard .sub{font-size:13px;color:var(--ink2);margin-top:3px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:1px}
+.track{height:6px;border-radius:99px;background:var(--surface3);margin-top:12px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:99px;transition:width .4s ease}
+.c-sleep .big{color:var(--sleep)} .c-sleep .track i{background:var(--sleep)} .c-sleep .dot{background:var(--sleep)}
+.c-feed .big{color:var(--feed)} .c-feed .track i{background:var(--feed)} .c-feed .dot{background:var(--feed)}
+.due .big{color:var(--warn)!important} .due .track i{background:var(--warn)!important}
+.badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--surface2);color:var(--ink2);white-space:nowrap}
+.badge.alarm{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- bottom action bar ---------- */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,var(--ground) 30%);
+  padding:26px 16px calc(12px + env(safe-area-inset-bottom,0px));
+}
+.barin{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:9px}
+.offsets{display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:nowrap}
+.offsets .lbl{font-size:11.5px;color:var(--ink3);margin-right:2px;white-space:nowrap}
+.chip{
+  font-size:12.5px;font-weight:500;padding:5px 10px;border-radius:99px;white-space:nowrap;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink2);
+}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.act{
+  border-radius:var(--r);padding:16px 10px;font-weight:600;font-size:16px;
+  color:#fff;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:transform .08s;
+}
+.act:active{transform:scale(.97)}
+.act small{font-size:11.5px;font-weight:500;opacity:.8}
+.act.sleep{background:var(--sleep)} .act.feed{background:var(--feed)}
+:root[data-theme="dark"] .act,:root:not([data-theme="light"]) .act{color:#0D131B}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .act{color:#fff}}
+:root[data-theme="light"] .act{color:#fff}
+
+/* ---------- shortcut banner ---------- */
+.tbanner{
+  display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line2);
+  border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow);
+}
+.tbanner p{margin:0;font-size:12.5px;color:var(--ink2);flex:1}
+.tbanner a{font-size:13px;font-weight:600;color:var(--sleep);text-decoration:none;white-space:nowrap}
+.tbanner button{color:var(--ink3);font-size:18px;line-height:1;padding:0 2px}
+
+/* ---------- lists ---------- */
+.rows{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.row:last-child{border-bottom:none}
+.row .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;flex:0 0 auto}
+.ic.s{background:var(--sleep-soft);color:var(--sleep)} .ic.f{background:var(--feed-soft);color:var(--feed)}
+.row .m{flex:1;min-width:0}
+.row .m b{font-weight:600;font-size:14px;display:block}
+.row .m span{font-size:12px;color:var(--ink3)}
+.row .v{font-size:13.5px;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.daysep{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);padding:14px 0 4px}
+
+/* ---------- tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.tile{background:var(--surface);border-radius:var(--r);padding:12px;box-shadow:var(--shadow)}
+.tile .k{font-size:11.5px;color:var(--ink3);font-weight:500}
+.tile .v{font-family:"Outfit",sans-serif;font-size:23px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.tile .n{font-size:11.5px;color:var(--ink3);margin-top:1px}
+
+/* ---------- chart ---------- */
+.readout{display:flex;align-items:baseline;gap:8px;margin:2px 0 10px}
+.readout b{font-family:"Outfit",sans-serif;font-size:21px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.readout span{font-size:12px;color:var(--ink3)}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:108px;position:relative;border-bottom:1px solid var(--line)}
+.avgline{position:absolute;left:0;right:0;border-top:1px dashed var(--line2);pointer-events:none}
+.avgline em{position:absolute;right:0;top:-15px;font-style:normal;font-size:10.5px;color:var(--ink3);background:var(--surface);padding:0 3px}
+.barcol{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0;background:none;position:relative;z-index:1}
+.barcol i{display:block;width:66%;border-radius:4px 4px 0 0;min-height:3px;background:var(--surface3);transition:background .15s}
+.barcol.on i{box-shadow:0 0 0 2px var(--surface)}
+.barcol.sl i{background:var(--sleep-soft)} .barcol.sl.on i{background:var(--sleep)}
+.barcol.fd i{background:var(--feed-soft)} .barcol.fd.on i{background:var(--feed)}
+.xax{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.xax span{font-size:11px;color:var(--ink3);text-align:center}
+.xax span.now{color:var(--ink);font-weight:600}
+
+/* ---------- form ---------- */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink2)}
+.field .hint{font-size:11.5px;color:var(--ink3);line-height:1.4}
+input[type=text],input[type=number],input[type=time],input[type=date],textarea{
+  background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 11px;width:100%;
+}
+textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sw{width:46px;height:27px;border-radius:99px;background:var(--line2);position:relative;transition:background .18s;flex:0 0 auto}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw[aria-checked="true"]{background:var(--feed)}
+.sw[aria-checked="true"]::after{transform:translateX(19px)}
+.btn{border:1px solid var(--line2);background:var(--surface2);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
+.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+ol.howto{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:var(--ink2);line-height:1.55}
+ol.howto code{background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:11.5px}
+.empty{text-align:center;color:var(--ink3);font-size:13px;padding:22px 10px}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(10,16,24,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{
+  background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+  max-height:88vh;overflow-y:auto;animation:up .22s ease
+}
+@keyframes up{from{transform:translateY(20px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}*{transition:none!important}}
+.sheet h2{font-family:"Outfit",sans-serif;font-size:18px;font-weight:600;margin:0 0 12px;letter-spacing:-.015em}
+.mlrow{display:flex;align-items:center;gap:12px;justify-content:center;margin:4px 0 12px}
+.mlrow button{width:46px;height:46px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-size:21px;font-weight:600}
+.mlval{font-family:"Outfit",sans-serif;font-size:38px;font-weight:600;min-width:112px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.mlval em{font-style:normal;font-size:15px;color:var(--ink3);font-family:"IBM Plex Sans",sans-serif;margin-left:3px}
+.quick{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+</style>
+
+</head>
+<body>
+<header>
+  <div class="brandrow">
+    <div class="brand">Rytmus <span id="babyName">miminka</span></div>
+    <div class="today num" id="todayLine">—</div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="now" aria-selected="true">Dnes</button>
+    <button role="tab" data-tab="stats" aria-selected="false">Statistiky</button>
+    <button role="tab" data-tab="log" aria-selected="false">Záznamy</button>
+    <button role="tab" data-tab="set" aria-selected="false">Nastavení</button>
+  </div>
+</header>
+
+<main id="main" class="with-bar">
+  <div class="stack" id="view"></div>
+</main>
+
+<div class="bar" id="bar">
+  <div class="barin">
+    <div class="tbanner" id="tbanner" hidden>
+      <p id="tbannerText"></p>
+      <a id="tbannerLink" href="#">Nastavit</a>
+      <button id="tbannerClose" aria-label="Zavřít">×</button>
+    </div>
+    <div class="offsets" id="offsets">
+      <span class="lbl">Zaznamenat:</span>
+      <button class="chip" data-off="0" aria-pressed="true">teď</button>
+      <button class="chip" data-off="5" aria-pressed="false">−5</button>
+      <button class="chip" data-off="10" aria-pressed="false">−10</button>
+      <button class="chip" data-off="20" aria-pressed="false">−20</button>
+      <button class="chip" data-off="30" aria-pressed="false">−30 min</button>
+    </div>
+    <div class="acts">
+      <button class="act sleep" id="btnSleep"><b id="btnSleepLabel">Usnula</b><small id="btnSleepSub">spánek</small></button>
+      <button class="act feed" id="btnFeed"><b>Najedla se</b><small id="btnFeedSub">mléko</small></button>
+    </div>
+  </div>
+</div>
+
+<div id="modal"></div>
+
+<script>
+"use strict";
+const KEY = "rytmus-miminka-v1";
+const DEF = {
+  settings:{ name:"", feedMin:180, wakeMin:90, defaultMl:120,
+             scOn:true, scFeed:"Miminko jídlo", scSleep:"Miminko spánek" },
+  events:[]
+};
+let S = load(), tab = "now", offsetMin = 0;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return structuredClone(DEF);
+    const p = JSON.parse(raw);
+    return { settings:{...DEF.settings, ...(p.settings||{})}, events: Array.isArray(p.events)?p.events:[] };
+  }catch(e){ return structuredClone(DEF); }
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ---------- time helpers ---------- */
+const MIN=60000, HOUR=3600000;
+const pad = n => String(n).padStart(2,"0");
+function clock(ts){ const d=new Date(ts); return pad(d.getHours())+":"+pad(d.getMinutes()); }
+function dur(ms){
+  ms = Math.max(0, ms);
+  const h = Math.floor(ms/HOUR), m = Math.round((ms%HOUR)/MIN);
+  if(h && m===60) return (h+1)+" h";
+  if(h) return h+" h "+m+" min";
+  return m+" min";
+}
+function durShort(ms){
+  ms = Math.max(0, ms);
+  const h = Math.floor(ms/HOUR), m = Math.floor((ms%HOUR)/MIN);
+  return h ? h+":"+pad(m) : m+" min";
+}
+function sod(ts){ const d=new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }
+function nextDay(ts){ const d=new Date(ts); d.setHours(0,0,0,0); d.setDate(d.getDate()+1); return d.getTime(); }
+const DOW = ["ne","po","út","st","čt","pá","so"];
+const MON = ["led","úno","bře","dub","kvě","čvn","čvc","srp","zář","říj","lis","pro"];
+function dateLabel(ts){
+  const t = sod(Date.now());
+  if(ts===t) return "Dnes";
+  if(ts===t-86400000 || ts===sod(t-2*HOUR)) return "Včera";
+  const d=new Date(ts); return DOW[d.getDay()]+" "+d.getDate()+". "+MON[d.getMonth()];
+}
+
+/* ---------- queries ---------- */
+const feeds = () => S.events.filter(e=>e.t==="feed").sort((a,b)=>a.at-b.at);
+const sleeps = () => S.events.filter(e=>e.t==="sleep").sort((a,b)=>a.start-b.start);
+const openSleep = () => S.events.find(e=>e.t==="sleep" && !e.end);
+function lastFeed(){ const f=feeds(); return f.length?f[f.length-1]:null; }
+function lastSleepDone(){ const s=sleeps().filter(x=>x.end); return s.length?s[s.length-1]:null; }
+
+function sleepByDay(){
+  const m = {};
+  const now = Date.now();
+  for(const s of sleeps()){
+    let a = s.start, b = s.end || now;
+    while(a < b){
+      const cut = Math.min(b, nextDay(a));
+      const k = sod(a);
+      m[k] = (m[k]||0) + (cut-a);
+      a = cut;
+    }
+  }
+  return m;
+}
+function feedByDay(){
+  const m = {};
+  for(const f of feeds()){
+    const k = sod(f.at);
+    if(!m[k]) m[k] = {ml:0, n:0};
+    m[k].ml += (f.ml||0); m[k].n++;
+  }
+  return m;
+}
+function lastDays(n){
+  const out=[]; let d=sod(Date.now());
+  for(let i=n-1;i>=0;i--){ const x=new Date(d); x.setDate(x.getDate()-i); out.push(sod(x.getTime())); }
+  return out;
+}
+
+/* ---------- actions ---------- */
+function stamp(){ return Date.now() - offsetMin*MIN; }
+
+function toggleSleep(){
+  const o = openSleep();
+  if(o){
+    o.end = Math.max(o.start+MIN, stamp());
+    save(); resetOffset(); render();
+    fireShortcut(S.settings.scSleep, S.settings.wakeMin, "další spánek");
+  }else{
+    S.events.push({ id:uid(), t:"sleep", start:stamp(), end:null });
+    save(); resetOffset(); render();
+  }
+}
+function logFeed(ml){
+  S.events.push({ id:uid(), t:"feed", at:stamp(), ml:ml });
+  save(); resetOffset(); render();
+  fireShortcut(S.settings.scFeed, S.settings.feedMin, "další jídlo");
+}
+function resetOffset(){
+  offsetMin = 0;
+  document.querySelectorAll("#offsets .chip").forEach(c=>c.setAttribute("aria-pressed", c.dataset.off==="0"));
+}
+
+/* ---------- iOS Shortcuts ---------- */
+function fireShortcut(name, minutes, what){
+  if(!S.settings.scOn || !name) return;
+  const url = "shortcuts://run-shortcut?name="+encodeURIComponent(name)+"&input=text&text="+encodeURIComponent(String(minutes));
+  const b = document.getElementById("tbanner");
+  document.getElementById("tbannerText").textContent = "Připomenutí na "+what+" za "+durShort(minutes*MIN)+".";
+  const a = document.getElementById("tbannerLink");
+  a.href = url; a.textContent = "Nastavit";
+  b.hidden = false;
+  clearTimeout(fireShortcut._t);
+  fireShortcut._t = setTimeout(()=>{ b.hidden = true; }, 25000);
+  try{
+    const tmp = document.createElement("a");
+    tmp.href = url; tmp.target = "_top"; tmp.rel = "noopener";
+    document.body.appendChild(tmp); tmp.click(); tmp.remove();
+  }catch(e){}
+}
+
+/* ---------- render: DNES ---------- */
+function viewNow(){
+  const now = Date.now();
+  const o = openSleep(), lf = lastFeed(), ls = lastSleepDone();
+  const parts = [];
+
+  /* feed card */
+  let fBig, fSub, fPct=0, fDue=false, fBadge="";
+  if(lf){
+    const since = now - lf.at, target = S.settings.feedMin*MIN;
+    fPct = Math.min(1, since/target);
+    fDue = since >= target;
+    fBig = fDue ? "+"+dur(since-target) : "za "+dur(target-since);
+    fSub = "Poslední "+clock(lf.at)+" · "+(lf.ml||0)+" ml · před "+durShort(since);
+    fBadge = fDue ? '<span class="badge alarm">Je čas</span>' : '<span class="badge">po '+S.settings.feedMin+' min</span>';
+  }else{
+    fBig = "—"; fSub = "Zatím žádné jídlo"; fBadge = '<span class="badge">po '+S.settings.feedMin+' min</span>';
+  }
+  parts.push('<div class="card statecard c-feed '+(fDue?"due":"")+'">'
+    + '<div class="top"><div><div class="eyebrow"><span class="dot"></span>Jídlo</div>'
+    + '<div class="big">'+fBig+'</div><div class="sub">'+fSub+'</div></div>'+fBadge+'</div>'
+    + '<div class="track"><i style="width:'+(fPct*100).toFixed(1)+'%"></i></div></div>');
+
+  /* sleep card */
+  let sBig, sSub, sPct=0, sDue=false, sBadge="";
+  if(o){
+    const el = now - o.start;
+    sBig = dur(el); sSub = "Usnula v "+clock(o.start);
+    sPct = Math.min(1, el/(2*HOUR));
+    sBadge = '<span class="badge">spí</span>';
+  }else if(ls){
+    const awake = now - ls.end, target = S.settings.wakeMin*MIN;
+    sPct = Math.min(1, awake/target); sDue = awake >= target;
+    sBig = sDue ? "+"+dur(awake-target) : "za "+dur(target-awake);
+    sSub = "Vzhůru "+durShort(awake)+" · předtím spala "+durShort(ls.end-ls.start);
+    sBadge = sDue ? '<span class="badge alarm">Je čas</span>' : '<span class="badge">po '+S.settings.wakeMin+' min</span>';
+  }else{
+    sBig = "—"; sSub = "Zatím žádný spánek"; sBadge = '<span class="badge">po '+S.settings.wakeMin+' min</span>';
+  }
+  parts.push('<div class="card statecard c-sleep '+(sDue?"due":"")+'">'
+    + '<div class="top"><div><div class="eyebrow"><span class="dot"></span>'+(o?"Spánek":"Bdění")+'</div>'
+    + '<div class="big">'+sBig+'</div><div class="sub">'+sSub+'</div></div>'+sBadge+'</div>'
+    + '<div class="track"><i style="width:'+(sPct*100).toFixed(1)+'%"></i></div></div>');
+
+  /* today's events */
+  const t0 = sod(now);
+  const today = S.events.filter(e => (e.t==="feed" ? e.at>=t0 : (e.end||now)>=t0))
+                        .sort((a,b)=> (b.t==="feed"?b.at:b.start) - (a.t==="feed"?a.at:a.start));
+  parts.push('<div class="card flat"><div class="eyebrow" style="margin-bottom:6px">Dnešní záznamy</div>'
+    + (today.length ? '<div class="rows">'+today.map(rowHtml).join("")+'</div>'
+                    : '<div class="empty">Zatím nic. Začni tlačítkem dole.</div>')
+    + '</div>');
+
+  return parts.join("");
+}
+function rowHtml(e){
+  const now = Date.now();
+  if(e.t==="feed"){
+    return '<button class="row" data-edit="'+e.id+'"><span class="ic f">◕</span>'
+      + '<span class="m"><b>Jídlo</b><span>'+clock(e.at)+'</span></span>'
+      + '<span class="v">'+(e.ml||0)+' ml</span></button>';
+  }
+  const end = e.end || now;
+  return '<button class="row" data-edit="'+e.id+'"><span class="ic s">☾</span>'
+    + '<span class="m"><b>Spánek'+(e.end?"":" · probíhá")+'</b><span>'+clock(e.start)+(e.end?" – "+clock(e.end):"")+'</span></span>'
+    + '<span class="v">'+dur(end-e.start)+'</span></button>';
+}
+
+/* ---------- render: STATISTIKY ---------- */
+let pickDay = null;
+function viewStats(){
+  const days = lastDays(7);
+  const sMap = sleepByDay(), fMap = feedByDay();
+  const today = sod(Date.now());
+  if(pickDay===null || !days.includes(pickDay)) pickDay = today;
+
+  const sleepMs = d => sMap[d]||0;
+  const ml = d => (fMap[d]?fMap[d].ml:0);
+  const cnt = d => (fMap[d]?fMap[d].n:0);
+  const elapsed = d => (d===today ? Date.now()-today : 86400000);
+  const awake = d => Math.max(0, elapsed(d) - sleepMs(d));
+
+  const tiles = '<div class="eyebrow" style="margin:-2px 2px 0">'+dateLabel(pickDay)+'</div><div class="tiles">'
+    + tile("Spánek", dur(sleepMs(pickDay)), (sleeps().filter(s=>sod(s.start)===pickDay).length||0)+"× uložení")
+    + tile("Bdění", dur(awake(pickDay)), pickDay===today?"zatím dnes":"za celý den")
+    + tile("Mléko", ml(pickDay)+" ml", cnt(pickDay)+"× jídlo")
+    + tile("Průměr na dávku", (cnt(pickDay)?Math.round(ml(pickDay)/cnt(pickDay)):0)+" ml", "za tento den")
+    + '</div>';
+
+  const chartSleep = chart(days, days.map(d=>sleepMs(d)/HOUR), "sl", v=>v.toFixed(1).replace(".",",")+" h", "Spánek za den");
+  const chartMl = chart(days, days.map(d=>ml(d)), "fd", v=>Math.round(v)+" ml", "Mléko za den");
+
+  const past = days.filter(d=>d!==today);
+  const avgS = past.length?past.reduce((a,d)=>a+sleepMs(d),0)/past.length:0;
+  const avgM = past.length?past.reduce((a,d)=>a+ml(d),0)/past.length:0;
+  const summary = '<div class="card flat"><div class="eyebrow" style="margin-bottom:8px">Průměr za uplynulé dny</div>'
+    + '<div class="rows"><div class="row"><span class="m"><b>Spánek</b><span>bez dnešního dne</span></span><span class="v">'+dur(avgS)+'</span></div>'
+    + '<div class="row"><span class="m"><b>Mléko</b><span>bez dnešního dne</span></span><span class="v">'+Math.round(avgM)+' ml</span></div></div></div>';
+
+  return tiles + chartSleep + chartMl + summary;
+}
+function tile(k,v,n){ return '<div class="tile"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="n">'+n+'</div></div>'; }
+function chart(days, vals, cls, fmt, title){
+  const max = Math.max(...vals, cls==="sl"?8:1);
+  const nz = vals.filter(v=>v>0);
+  const avg = nz.length ? nz.reduce((a,b)=>a+b,0)/nz.length : 0;
+  const i = days.indexOf(pickDay);
+  const today = sod(Date.now());
+  const bars = days.map((d,k)=>{
+    const h = Math.max(2, (vals[k]/max)*100);
+    return '<button class="barcol '+cls+(k===i?" on":"")+'" data-day="'+d+'" aria-label="'+dateLabel(d)+': '+fmt(vals[k])+'">'
+      + '<i style="height:'+h.toFixed(1)+'%"></i></button>';
+  }).join("");
+  const labels = days.map(d=>'<span class="'+(d===today?"now":"")+'">'+(d===today?"dnes":DOW[new Date(d).getDay()])+'</span>').join("");
+  const avgTop = avg>0 ? (100 - (avg/max)*100) : -100;
+  return '<div class="card"><div class="eyebrow">'+title+'</div>'
+    + '<div class="readout"><b>'+fmt(vals[i])+'</b><span>'+dateLabel(days[i])+'</span></div>'
+    + '<div class="bars">'
+    + (avg>0 ? '<div class="avgline" style="top:'+avgTop.toFixed(1)+'%"><em>⌀ '+fmt(avg)+'</em></div>' : '')
+    + bars + '</div><div class="xax">'+labels+'</div></div>';
+}
+
+/* ---------- render: ZÁZNAMY ---------- */
+function viewLog(){
+  const all = S.events.slice().sort((a,b)=> (b.t==="feed"?b.at:b.start) - (a.t==="feed"?a.at:a.start));
+  if(!all.length) return '<div class="card flat"><div class="empty">Zatím žádné záznamy.</div></div>';
+  let out = "", cur = null, buf = [];
+  const flush = () => { if(buf.length) out += '<div class="card flat"><div class="daysep" style="padding-top:0">'+dateLabel(cur)+'</div><div class="rows">'+buf.join("")+'</div></div>'; buf=[]; };
+  for(const e of all){
+    const d = sod(e.t==="feed"?e.at:e.start);
+    if(cur===null) cur=d;
+    if(d!==cur){ flush(); cur=d; }
+    buf.push(rowHtml(e));
+  }
+  flush();
+  return '<div style="font-size:12px;color:var(--ink3);margin-bottom:-4px">Klepnutím na záznam ho upravíš nebo smažeš.</div>' + out;
+}
+
+/* ---------- render: NASTAVENÍ ---------- */
+function viewSet(){
+  const st = S.settings;
+  return '<div class="card"><div class="eyebrow" style="margin-bottom:10px">Intervaly</div>'
+  + field("Jméno", '<input type="text" id="sName" value="'+esc(st.name)+'" placeholder="miminka">')
+  + field("Upozornit po jídle (min)", '<input type="number" id="sFeedMin" min="15" max="720" step="5" value="'+st.feedMin+'">', "Odpočet začíná v okamžiku záznamu jídla.")
+  + field("Upozornit po probuzení (min)", '<input type="number" id="sWakeMin" min="15" max="720" step="5" value="'+st.wakeMin+'">', "Délka bdělého okna, než má jít zase spát.")
+  + field("Výchozí dávka (ml)", '<input type="number" id="sMl" min="0" max="500" step="10" value="'+st.defaultMl+'">')
+  + '</div>'
+
+  + '<div class="card"><div class="eyebrow" style="margin-bottom:10px">Upozornění přes Zkratky</div>'
+  + '<div class="switch" style="margin-bottom:12px"><div><div style="font-size:13.5px;font-weight:600">Spouštět zkratku</div>'
+  + '<div class="hint">Po každém záznamu nastaví připomenutí v iOS.</div></div>'
+  + '<button class="sw" id="sSw" role="switch" aria-checked="'+(st.scOn?"true":"false")+'"></button></div>'
+  + field("Zkratka po jídle", '<input type="text" id="sScFeed" value="'+esc(st.scFeed)+'">')
+  + field("Zkratka po probuzení", '<input type="text" id="sScSleep" value="'+esc(st.scSleep)+'">')
+  + '<div class="hint" style="margin-top:10px;font-weight:600;color:var(--ink2)">Jak zkratku vytvořit</div>'
+  + '<ol class="howto">'
+  + '<li>V aplikaci <b>Zkratky</b> vytvoř novou zkratku a pojmenuj ji přesně jako výše.</li>'
+  + '<li>Přidej akci <code>Upravit datum</code> → k <code>Aktuální datum</code> přidej <code>Vstup zkratky</code> minut.</li>'
+  + '<li>Přidej akci <code>Přidat novou připomínku</code>, text např. „Čas na jídlo“, zapni <code>Upozornit</code> a jako čas dosaď <code>Upravené datum</code>.</li>'
+  + '<li>V podrobnostech zkratky zapni <b>Zobrazit při spuštění</b> → vypnuto, ať se nic neptá.</li>'
+  + '<li>Druhou zkratku udělej stejně, jen s textem „Čas na spaní“.</li>'
+  + '</ol>'
+  + '<div class="hint" style="margin-top:8px">Aplikace předá zkratce počet minut jako vstup. Pokud iOS zkratku nespustí sám, klepni na odkaz <b>Nastavit</b>, který se objeví nad tlačítky.</div>'
+  + '</div>'
+
+  + '<div class="card"><div class="eyebrow" style="margin-bottom:10px">Data</div>'
+  + '<div class="hint" style="margin-bottom:10px">Záznamy jsou uložené v tomto prohlížeči. Přidej si stránku na plochu a zálohuj si je občas zkopírováním.</div>'
+  + '<div class="btnrow"><button class="btn" id="bExport">Zobrazit zálohu</button><button class="btn" id="bImport">Obnovit ze zálohy</button><button class="btn danger" id="bWipe">Smazat vše</button></div>'
+  + '<textarea id="ioBox" rows="6" hidden style="margin-top:10px"></textarea>'
+  + '<div class="btnrow" id="ioBtns" hidden style="margin-top:8px"><button class="btn primary" id="bIoOk">Načíst data</button><button class="btn" id="bIoCopy">Kopírovat</button></div>'
+  + '</div>';
+}
+function field(l, ctrl, hint){ return '<div class="field"><label>'+l+'</label>'+ctrl+(hint?'<div class="hint">'+hint+'</div>':"")+'</div>'; }
+function esc(s){ return String(s||"").replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+
+/* ---------- sheets ---------- */
+function closeSheet(){ document.getElementById("modal").innerHTML = ""; }
+function sheet(html){
+  const m = document.getElementById("modal");
+  m.innerHTML = '<div class="scrim" id="scrim"><div class="sheet">'+html+'</div></div>';
+  document.getElementById("scrim").addEventListener("click", ev => { if(ev.target.id==="scrim") closeSheet(); });
+}
+function feedSheet(){
+  let ml = S.settings.defaultMl;
+  sheet('<h2>Kolik snědla?</h2>'
+    + '<div class="mlrow"><button id="mm">−</button><div class="mlval"><span id="mv">'+ml+'</span><em>ml</em></div><button id="mp">+</button></div>'
+    + '<div class="quick">'+[0,60,90,120,150,180,210].map(v=>'<button class="chip" data-ml="'+v+'">'+(v===0?"nevím":v)+'</button>').join("")+'</div>'
+    + '<div class="btnrow" style="justify-content:stretch"><button class="btn primary" id="fok" style="flex:1;padding:14px">Uložit'+(offsetMin?" (−"+offsetMin+" min)":"")+'</button></div>');
+  const mv = document.getElementById("mv");
+  const set = v => { ml = Math.max(0, Math.min(500, v)); mv.textContent = ml; };
+  document.getElementById("mm").onclick = ()=>set(ml-10);
+  document.getElementById("mp").onclick = ()=>set(ml+10);
+  document.querySelectorAll("[data-ml]").forEach(b=> b.onclick = ()=>set(+b.dataset.ml));
+  document.getElementById("fok").onclick = ()=>{ closeSheet(); logFeed(ml); };
+}
+function editSheet(id){
+  const e = S.events.find(x=>x.id===id);
+  if(!e) return;
+  const tv = ts => { const d=new Date(ts); return pad(d.getHours())+":"+pad(d.getMinutes()); };
+  let html = '<h2>Upravit záznam</h2>';
+  if(e.t==="feed"){
+    html += field("Čas", '<input type="time" id="e1" value="'+tv(e.at)+'">')
+          + field("Množství (ml)", '<input type="number" id="e3" min="0" max="500" step="10" value="'+(e.ml||0)+'">');
+  }else{
+    html += field("Usnula", '<input type="time" id="e1" value="'+tv(e.start)+'">')
+          + field("Probudila se", '<input type="time" id="e2" value="'+(e.end?tv(e.end):"")+'">', e.end?"":"Prázdné = spánek stále probíhá.");
+  }
+  html += '<div class="btnrow" style="margin-top:14px"><button class="btn primary" id="eok" style="flex:1">Uložit</button><button class="btn danger" id="edel">Smazat</button></div>';
+  sheet(html);
+  document.getElementById("edel").onclick = ()=>{
+    S.events = S.events.filter(x=>x.id!==id); save(); closeSheet(); render();
+  };
+  document.getElementById("eok").onclick = ()=>{
+    const apply = (base, val) => {
+      if(!val) return null;
+      const [h,m] = val.split(":").map(Number);
+      const d = new Date(base); d.setHours(h, m, 0, 0);
+      return d.getTime();
+    };
+    if(e.t==="feed"){
+      const t = apply(e.at, document.getElementById("e1").value);
+      if(t) e.at = t;
+      e.ml = Math.max(0, +document.getElementById("e3").value || 0);
+    }else{
+      const s = apply(e.start, document.getElementById("e1").value);
+      if(s) e.start = s;
+      const ev = document.getElementById("e2").value;
+      if(ev){
+        let en = apply(e.end || e.start, ev);
+        if(en < e.start) en += 86400000;
+        e.end = en;
+      }else e.end = null;
+    }
+    save(); closeSheet(); render();
+  };
+}
+
+/* ---------- render shell ---------- */
+function render(){
+  const st = S.settings;
+  document.getElementById("babyName").textContent = st.name.trim() || "miminka";
+  const sMap = sleepByDay(), fMap = feedByDay(), t = sod(Date.now());
+  document.getElementById("todayLine").textContent =
+    durShort(sMap[t]||0)+" spánku · "+((fMap[t]&&fMap[t].ml)||0)+" ml";
+
+  const o = openSleep();
+  document.getElementById("btnSleepLabel").textContent = o ? "Probudila se" : "Usnula";
+  document.getElementById("btnSleepSub").textContent = o ? "spí "+dur(Date.now()-o.start) : "začátek spánku";
+  document.getElementById("btnFeedSub").textContent = st.defaultMl ? "obvykle "+st.defaultMl+" ml" : "mléko";
+
+  const bar = document.getElementById("bar"), main = document.getElementById("main");
+  bar.hidden = tab !== "now";
+  main.classList.toggle("with-bar", tab === "now");
+
+  const v = document.getElementById("view");
+  v.innerHTML = tab==="now" ? viewNow() : tab==="stats" ? viewStats() : tab==="log" ? viewLog() : viewSet();
+  if(tab==="set") wireSettings();
+}
+
+function wireSettings(){
+  const st = S.settings;
+  const bind = (id, key, num) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("change", ()=>{
+      st[key] = num ? Math.max(0, +el.value||0) : el.value;
+      save(); document.getElementById("babyName").textContent = st.name.trim()||"miminka";
+    });
+  };
+  bind("sName","name"); bind("sFeedMin","feedMin",1); bind("sWakeMin","wakeMin",1);
+  bind("sMl","defaultMl",1); bind("sScFeed","scFeed"); bind("sScSleep","scSleep");
+  const sw = document.getElementById("sSw");
+  sw.onclick = ()=>{ st.scOn = !st.scOn; sw.setAttribute("aria-checked", st.scOn?"true":"false"); save(); };
+
+  const box = document.getElementById("ioBox"), btns = document.getElementById("ioBtns");
+  document.getElementById("bExport").onclick = ()=>{
+    box.value = JSON.stringify(S); box.hidden = false; btns.hidden = false; box.select();
+  };
+  document.getElementById("bImport").onclick = ()=>{
+    box.value = ""; box.hidden = false; btns.hidden = false; box.placeholder = "Sem vlož zálohu a klepni na Načíst data"; box.focus();
+  };
+  document.getElementById("bIoCopy").onclick = ()=>{
+    try{ navigator.clipboard.writeText(box.value); }catch(e){ box.select(); }
+  };
+  document.getElementById("bIoOk").onclick = ()=>{
+    try{
+      const p = JSON.parse(box.value);
+      if(!p || !Array.isArray(p.events)) throw 0;
+      S = { settings:{...DEF.settings, ...(p.settings||{})}, events:p.events };
+      save(); render();
+    }catch(e){ box.value = "Zálohu se nepodařilo načíst."; }
+  };
+  document.getElementById("bWipe").onclick = ()=>{
+    sheet('<h2>Smazat všechna data?</h2><div class="hint" style="margin-bottom:14px">Tohle nejde vzít zpět. Zálohu si zkopíruj předem.</div>'
+      + '<div class="btnrow"><button class="btn danger" id="wok" style="flex:1">Ano, smazat</button><button class="btn" id="wno" style="flex:1">Zrušit</button></div>');
+    document.getElementById("wno").onclick = closeSheet;
+    document.getElementById("wok").onclick = ()=>{ S = structuredClone(DEF); save(); closeSheet(); render(); };
+  };
+}
+
+/* ---------- events ---------- */
+document.querySelectorAll('[role="tab"]').forEach(b=>{
+  b.addEventListener("click", ()=>{
+    tab = b.dataset.tab;
+    document.querySelectorAll('[role="tab"]').forEach(x=>x.setAttribute("aria-selected", String(x===b)));
+    document.getElementById("main").scrollTop = 0;
+    render();
+  });
+});
+document.getElementById("offsets").addEventListener("click", ev=>{
+  const c = ev.target.closest(".chip"); if(!c) return;
+  offsetMin = +c.dataset.off;
+  document.querySelectorAll("#offsets .chip").forEach(x=>x.setAttribute("aria-pressed", String(x===c)));
+});
+document.getElementById("btnSleep").addEventListener("click", toggleSleep);
+document.getElementById("btnFeed").addEventListener("click", feedSheet);
+document.getElementById("tbannerClose").addEventListener("click", ()=>{ document.getElementById("tbanner").hidden = true; });
+document.getElementById("view").addEventListener("click", ev=>{
+  const r = ev.target.closest("[data-edit]");
+  if(r){ editSheet(r.dataset.edit); return; }
+  const b = ev.target.closest("[data-day]");
+  if(b){ pickDay = +b.dataset.day; render(); }
+});
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) render(); });
+setInterval(()=>{ if(!document.hidden && tab==="now" && !document.getElementById("modal").firstChild) render(); }, 10000);
+
+render();
+</script>
+
+</body>
+</html>
